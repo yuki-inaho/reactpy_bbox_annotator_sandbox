@@ -239,5 +239,10 @@ PY
 | 2025-11-20 | 08:51:57 UTC+0000 | Claude | 手順10継続: E2E basic_flow実行 | ✅ test_bbox_annotator_basic_flow PASSED、canvas要素検出成功 |
 | 2025-11-20 | 08:53:27 UTC+0000 | Claude | 手順10継続: E2E全テスト実行 | 🔄 4 passed, 3 failed（select_mode, text_mode, delete_entry）マウスインタラクション未動作 |
 | 2025-11-20 | 08:54:52 UTC+0000 | Claude | 状況報告: 作業記録更新 | 🔄 チェックリスト確認中、マウスイベント問題調査中 |
-| 2025-11-20 | 08:55:46 UTC+0000 | Claude | 今回セッションの重要な気づき | ✅ 【成功要因1】ReactPyは`backgroundImage`(camelCase)を`background-image`(kebab-case)に自動変換する。toy_canvas_testで検証完了。【成功要因2】相対URL（`/sample_image.png`）は`urllib.request.urlopen`で処理不可、`http://127.0.0.1:8000`を前置して解決。【失敗要因】Playwrightの`page.mouse`操作がReactPyの`onMouseDown/Move/Up`イベントで`offsetX/Y`を正しく受け取れていない可能性。3テスト失敗中。【学習】トイプロブレムによる問題分離が極めて有効。複雑な問題を最小限の再現コードで検証することで根本原因を特定できた。 |
+| 2025-11-20 | 08:55:46 UTC+0000 | Claude | 今回セッションの重要な気づき | ✅ 【成功要因1】ReactPyは`backgroundImage`(camelCase)を`background-image`(kebab-case)に自動変換する。toy_canvas_testで検証完了。【成功要因2】相対URL（`/sample_image.png`）は`urllib.request.urlopen`で処理不可、`http://127.0.0.1:8000`を前置して解決。【成功要因3】toy_mouse_testでReactPyマウスイベントが正常動作を確認、offsetX/offsetYも取得可能。【失敗要因】app.pyの`handle_mouse_down`等の条件チェック（status/display_size）でearly returnしている可能性。3テスト失敗中。【学習】トイプロブレムによる問題分離が極めて有効。複雑な問題を最小限の再現コードで検証することで根本原因を特定できた。 |
+| 2025-11-20 | 08:56:50 UTC+0000 | Claude | git commit & push | ✅ 6ファイル(397行追加、14行削除)をcommit 57b1b1d、pushに成功 |
+| 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: マウストイプロブレム作成 | ✅ toy_mouse_test.py作成、最小限のマウスインタラクション検証コード実装 |
+| 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: マウスイベント検証実行 | ✅ **重要な発見！** ReactPyのonMouseDown/Move/Upイベントは正常に動作。offsetX/offsetY取得成功（98,98→298,248）。状態遷移も成功（waiting→dragging→completed）。矩形描画も正常（width:200px, height:150px）。**つまり、ReactPy自体に問題はなく、app.pyの実装に問題がある。** |
+| 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: app.py差分分析開始 | 🔄 app.pyとtoy_mouse_test.pyを比較。app.pyは`handle_mouse_down`で`status not in ("free", "input")`および`display_size["width"]`をチェック。初期statusまたはdisplay_sizeが0の場合、early returnしている可能性。E2Eテストで実際の状態を確認する必要あり。 |
+| 2025-11-20 | 09:00:42 UTC+0000 | Claude | 作業記録更新（20行動リマインダー） | 🔄 現在の進捗: E2E 4/7 PASSED。マウスイベント自体は正常動作を確認。app.pyの条件分岐が原因でearly return している可能性を特定。次ステップ: app.pyにログを追加してE2Eテストでの実際の状態を確認。 |
 | | | | | |
