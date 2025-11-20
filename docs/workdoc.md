@@ -252,4 +252,5 @@ PY
 | 2025-11-20 | 09:23:00 UTC+0000 | Claude | 手順10継続: test_bbox.py修正 | ✅ test_bbox_annotation_text_mode: `.nth(1)` → `.first`に変更。test_bbox_delete_entry: `force=True`追加、`wait_for(state="visible")`追加。E2Eテスト実行 → 6/7 PASSED！text_mode成功、delete_entry依然失敗。 |
 | 2025-11-20 | 09:27:00 UTC+0000 | Claude | 手順10継続: app.py削除ボタン修正 | ✅ **根本原因解決！** 削除ボタンに`onMouseDown`イベントハンドラが設定されていなかった。入力フォームのselectには設定済みだが、削除ボタンには未設定。削除ボタンに`"onMouseDown": event(lambda evt: None, stop_propagation=True)`を追加。E2Eテスト再実行 → **7/7 PASSED！** 全テスト成功！ |
 | 2025-11-20 | 09:27:33 UTC+0000 | Claude | 手順10継続: デバッグログ削除 | ✅ app.pyのhandle_mouse_down/move/upからデバッグ用printステートメントを全て削除。コードクリーンアップ完了。 |
+| 2025-11-20 | 09:28:00 UTC+0000 | Claude | git commit & push | ✅ 3ファイル(18行追加、8行削除)をcommit 929212c、pushに成功。E2E全テスト修正完了、7/7 PASSED達成！ |
 | | | | | |
