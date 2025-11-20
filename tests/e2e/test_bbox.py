@@ -73,8 +73,8 @@ async def test_bbox_annotation_select_mode(server, page):
     await page.mouse.up()
     await page.wait_for_timeout(500)
 
-    # セレクトボックスが表示されることを確認
-    select = page.locator("select")
+    # セレクトボックスが表示されることを確認（autofocusの付いたものがラベル選択用）
+    select = page.locator("select[autofocus]")
     await select.wait_for()
 
     # ラベルを選択（最初のオプション）
@@ -101,7 +101,7 @@ async def test_bbox_annotation_text_mode(server, page):
     await page.wait_for_timeout(1000)
 
     # Input method を text に変更
-    input_method_select = page.locator('select').nth(1)  # 2番目のselectがinput method
+    input_method_select = page.locator('select').first  # input method selector
     await input_method_select.select_option("text")
     await page.wait_for_timeout(500)
 
@@ -121,8 +121,8 @@ async def test_bbox_annotation_text_mode(server, page):
     await page.mouse.up()
     await page.wait_for_timeout(500)
 
-    # テキスト入力が表示されることを確認
-    text_input = page.locator('input[type="text"]')
+    # テキスト入力が表示されることを確認（autofocusの付いたものがラベル入力用）
+    text_input = page.locator('input[type="text"][autofocus]')
     await text_input.wait_for()
 
     # ラベルを入力
@@ -159,13 +159,15 @@ async def test_bbox_delete_entry(server, page):
     await page.wait_for_timeout(500)
 
     # ラベルを選択
-    select = page.locator("select").first
+    select = page.locator("select[autofocus]")
     await select.select_option(index=1)
     await page.wait_for_timeout(500)
 
     # 削除ボタンをクリック
     delete_button = page.locator('button:has-text("x")')
-    await delete_button.click()
+    await delete_button.wait_for(state="visible")
+    await page.wait_for_timeout(200)  # ReactPyレンダリング完了を待つ
+    await delete_button.click(force=True)  # canvasのマウスイベント競合を回避
     await page.wait_for_timeout(500)
 
     # エントリが削除されたことを確認
@@ -196,7 +198,7 @@ async def test_bbox_reset_entries(server, page):
     await page.mouse.move(box["x"] + 150, box["y"] + 150)
     await page.mouse.up()
     await page.wait_for_timeout(500)
-    select = page.locator("select").first
+    select = page.locator("select[autofocus]")
     await select.select_option(index=1)
     await page.wait_for_timeout(500)
 

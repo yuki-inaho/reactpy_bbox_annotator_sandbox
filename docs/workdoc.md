@@ -246,4 +246,10 @@ PY
 | 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: app.py差分分析開始 | 🔄 app.pyとtoy_mouse_test.pyを比較。app.pyは`handle_mouse_down`で`status not in ("free", "input")`および`display_size["width"]`をチェック。初期statusまたはdisplay_sizeが0の場合、early returnしている可能性。E2Eテストで実際の状態を確認する必要あり。 |
 | 2025-11-20 | 09:00:42 UTC+0000 | Claude | 作業記録更新（20行動リマインダー） | 🔄 現在の進捗: E2E 4/7 PASSED。マウスイベント自体は正常動作を確認。app.pyの条件分岐が原因でearly return している可能性を特定。次ステップ: app.pyにログを追加してE2Eテストでの実際の状態を確認。 |
 | 2025-11-20 | 09:03:15 UTC+0000 | Claude | git commit & push | ✅ 3ファイル(333行追加、1行削除)をcommit a708783、pushに成功。マウスインタラクショントイプロブレム追加、作業記録詳細化完了。 |
+| 2025-11-20 | 09:20:09 UTC+0000 | Claude | 手順10継続: E2Eテスト修正開始 | 🔄 前回セッションで5/7 PASSED。test_bbox_annotation_text_modeとtest_bbox_delete_entry失敗中。問題調査開始。 |
+| 2025-11-20 | 09:21:00 UTC+0000 | Claude | 手順10継続: input methodセレクタ問題特定 | ✅ **重要な発見！** UIにはselectが1つのみ（input method selector）。Labels candidatesはtextarea。test_bbox_annotation_text_modeが`.nth(1)`で存在しないselectを探していた。→ `.first`に修正。 |
+| 2025-11-20 | 09:22:00 UTC+0000 | Claude | 手順10継続: 削除ボタン問題分析 | 🔄 サーバーログ確認。削除ボタンクリック時に "Ignored event - handler ... does not exist or its component unmounted" 発生。削除ボタンクリックがcanvasのMouseDown/Upをトリガーし、statusが'hold'→'input'に遷移。コンポーネント再レンダリングによりハンドラIDが変わり、onClickイベントが無視される。 |
+| 2025-11-20 | 09:23:00 UTC+0000 | Claude | 手順10継続: test_bbox.py修正 | ✅ test_bbox_annotation_text_mode: `.nth(1)` → `.first`に変更。test_bbox_delete_entry: `force=True`追加、`wait_for(state="visible")`追加。E2Eテスト実行 → 6/7 PASSED！text_mode成功、delete_entry依然失敗。 |
+| 2025-11-20 | 09:27:00 UTC+0000 | Claude | 手順10継続: app.py削除ボタン修正 | ✅ **根本原因解決！** 削除ボタンに`onMouseDown`イベントハンドラが設定されていなかった。入力フォームのselectには設定済みだが、削除ボタンには未設定。削除ボタンに`"onMouseDown": event(lambda evt: None, stop_propagation=True)`を追加。E2Eテスト再実行 → **7/7 PASSED！** 全テスト成功！ |
+| 2025-11-20 | 09:27:33 UTC+0000 | Claude | 手順10継続: デバッグログ削除 | ✅ app.pyのhandle_mouse_down/move/upからデバッグ用printステートメントを全て削除。コードクリーンアップ完了。 |
 | | | | | |

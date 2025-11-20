@@ -228,7 +228,9 @@ def BBoxAnnotatorApp():
                         "lineHeight": "18px",
                         "padding": "0",
                         "fontSize": "12px",
+                        "zIndex": "10",
                     },
+                    "onMouseDown": event(lambda evt: None, stop_propagation=True),
                     "onClick": event(
                         lambda e, entry_id=entry["id"]: delete_entry(entry_id),
                         stop_propagation=True,
