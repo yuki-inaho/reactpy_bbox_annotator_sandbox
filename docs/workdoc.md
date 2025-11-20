@@ -245,4 +245,5 @@ PY
 | 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: マウスイベント検証実行 | ✅ **重要な発見！** ReactPyのonMouseDown/Move/Upイベントは正常に動作。offsetX/offsetY取得成功（98,98→298,248）。状態遷移も成功（waiting→dragging→completed）。矩形描画も正常（width:200px, height:150px）。**つまり、ReactPy自体に問題はなく、app.pyの実装に問題がある。** |
 | 2025-11-20 | 09:00:16 UTC+0000 | Claude | 手順10継続: app.py差分分析開始 | 🔄 app.pyとtoy_mouse_test.pyを比較。app.pyは`handle_mouse_down`で`status not in ("free", "input")`および`display_size["width"]`をチェック。初期statusまたはdisplay_sizeが0の場合、early returnしている可能性。E2Eテストで実際の状態を確認する必要あり。 |
 | 2025-11-20 | 09:00:42 UTC+0000 | Claude | 作業記録更新（20行動リマインダー） | 🔄 現在の進捗: E2E 4/7 PASSED。マウスイベント自体は正常動作を確認。app.pyの条件分岐が原因でearly return している可能性を特定。次ステップ: app.pyにログを追加してE2Eテストでの実際の状態を確認。 |
+| 2025-11-20 | 09:03:15 UTC+0000 | Claude | git commit & push | ✅ 3ファイル(333行追加、1行削除)をcommit a708783、pushに成功。マウスインタラクショントイプロブレム追加、作業記録詳細化完了。 |
 | | | | | |
