@@ -225,4 +225,8 @@ PY
 | 2025-11-20 | 08:14:00 UTC+0000 | Claude | 手順8: Playwright chromium導入 | ✅ ブラウザインストール・テスト成功 |
 | 2025-11-20 | 08:15:00 UTC+0000 | Claude | 手順9: テストスケルトン作成 | ✅ 7つのE2Eテストを作成、fail-first確認 |
 | 2025-11-20 | 08:16:00 UTC+0000 | Claude | 手順10: 実装開始 | 🔄 conftest.py作成、テスト実装中、use_effect API修正対応中 |
+| 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: ReactPy API調査 | ✅ WebSearchでReactPy 1.1.0のuse_effectとhtml要素構文を調査完了 |
+| 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: トイプロブレム作成 | ✅ toy_app.py作成、7つのパターンテスト全てGREEN確認 |
+| 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: app.py修正 | ✅ use_effectをasync対応、html要素引数順序修正(props→content) |
+| 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: E2Eテスト実行 | 🔄 basic_flow testがタイムアウト、デバッグ中 |
 | | | | | |

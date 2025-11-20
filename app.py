@@ -8,15 +8,16 @@ from io import BytesIO
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI
-from PIL import Image
+from fastapi.responses import StreamingResponse
+from PIL import Image, ImageDraw, ImageFont
 from reactpy import component, html, use_effect, use_state
 from reactpy.backend.fastapi import configure
 from reactpy.core.events import event
 
 
 MAX_DISPLAY_WIDTH = 900
-DEFAULT_IMAGE_URL = "https://milkgenomics.org/wp-content/uploads/2013/08/bigstock-cows-mother-and-baby-3998546.jpg"
-DEFAULT_LABELS = "Mama cow,Baby cow"
+DEFAULT_IMAGE_URL = "/sample_image.png"
+DEFAULT_LABELS = "Object A,Object B,Background"
 
 
 @dataclass(frozen=True)
@@ -25,8 +26,8 @@ class ImageMeta:
     height: int
 
 
-@lru_cache(maxsize=16)
 def _fetch_image_meta(url: str) -> ImageMeta:
+    """Fetch image metadata from URL. Cache disabled for debugging."""
     with urllib.request.urlopen(url) as response:
         data = response.read()
     with Image.open(BytesIO(data)) as img:
@@ -81,32 +82,29 @@ def BBoxAnnotatorApp():
     label_value, set_label_value = use_state("")
     error_message, set_error_message = use_state("")
 
-    # Load image synchronously to avoid async complications
-    # In a real app, you'd want proper async handling
-    if not image_meta or image_url != getattr(image_meta, '_url', None):
+    # Load image metadata asynchronously when URL changes
+    @use_effect(dependencies=[image_url])
+    async def load_image_metadata():
+        set_error_message("")
         try:
-            meta = _fetch_image_meta(image_url)
-            meta._url = image_url  # Track which URL this meta is for
+            meta = await fetch_image_meta(image_url)
             factor = min(1.0, MAX_DISPLAY_WIDTH / meta.width) if meta.width else 1.0
-            if scale != factor or image_meta != meta:
-                set_scale(factor)
-                set_image_meta(meta)
-                set_display_size(
-                    {
-                        "width": int(meta.width * factor),
-                        "height": int(meta.height * factor),
-                    }
-                )
-                set_status("free")
-                set_start_pos(None)
-                set_pointer(None)
-                set_label_value("")
-                set_error_message("")
+            set_scale(factor)
+            set_image_meta(meta)
+            set_display_size(
+                {
+                    "width": int(meta.width * factor),
+                    "height": int(meta.height * factor),
+                }
+            )
+            set_status("free")
+            set_start_pos(None)
+            set_pointer(None)
+            set_label_value("")
         except Exception as exc:
-            if not error_message:
-                set_error_message(f"Failed to load image: {exc}")
-                set_image_meta(None)
-                set_display_size({"width": 0, "height": 0})
+            set_error_message(f"Failed to load image: {exc}")
+            set_image_meta(None)
+            set_display_size({"width": 0, "height": 0})
 
     def normalized_entry(entry: Dict) -> Dict:
         factor = 1.0 if scale == 0 else 1 / scale
@@ -211,7 +209,6 @@ def BBoxAnnotatorApp():
                 }
             },
             html.button(
-                "x",
                 {
                     "style": {
                         "position": "absolute",
@@ -234,9 +231,9 @@ def BBoxAnnotatorApp():
                         prevent_default=True,
                     ),
                 },
+                "x"
             ),
             html.div(
-                entry["label"],
                 {
                     "style": {
                         "position": "absolute",
@@ -248,6 +245,7 @@ def BBoxAnnotatorApp():
                         "fontSize": "12px",
                     }
                 },
+                entry["label"]
             ),
         )
         canvas_children.append(box)
@@ -288,11 +286,11 @@ def BBoxAnnotatorApp():
                     *[html.option({"value": label}, label) for label in label_options],
                 ),
                 html.button(
-                    "Cancel",
                     {
                         "onClick": event(lambda evt: clear_draft()),
                         "style": {"cursor": "pointer"},
                     },
+                    "Cancel"
                 ),
             )
         else:
@@ -318,18 +316,18 @@ def BBoxAnnotatorApp():
                     }
                 ),
                 html.button(
-                    "Add",
                     {
                         "onClick": event(lambda evt: add_entry(label_value)),
                         "style": {"cursor": "pointer"},
                     },
+                    "Add"
                 ),
                 html.button(
-                    "Cancel",
                     {
                         "onClick": event(lambda evt: clear_draft()),
                         "style": {"cursor": "pointer"},
                     },
+                    "Cancel"
                 ),
             )
 
@@ -382,11 +380,11 @@ def BBoxAnnotatorApp():
                 }
             ),
             html.button(
-                "Load image",
                 {
                     "onClick": event(lambda evt: set_image_url(url_text.strip())),
                     "style": {"cursor": "pointer", "width": "120px"},
                 },
+                "Load image"
             ),
         ),
         html.div(
@@ -423,11 +421,11 @@ def BBoxAnnotatorApp():
         html.div(
             {"style": {"display": "flex", "gap": "8px"}},
             html.button(
-                "Reset entries",
                 {
                     "onClick": event(lambda evt: set_entries([])),
                     "style": {"cursor": "pointer"},
                 },
+                "Reset entries"
             ),
         ),
         html.div(
@@ -503,6 +501,35 @@ def BBoxAnnotatorApp():
 
 
 fastapi_app = FastAPI()
+
+
+@fastapi_app.get("/sample_image.png")
+async def get_sample_image():
+    """Generate a sample image for testing."""
+    # Create 800x600 image with gradient background
+    img = Image.new('RGB', (800, 600), color=(73, 109, 137))
+    draw = ImageDraw.Draw(img)
+
+    # Draw some shapes for visual reference
+    draw.rectangle([100, 100, 300, 300], fill=(200, 100, 100), outline=(255, 255, 255), width=3)
+    draw.ellipse([400, 150, 650, 400], fill=(100, 200, 100), outline=(255, 255, 255), width=3)
+    draw.polygon([(200, 450), (350, 500), (150, 550)], fill=(100, 100, 200), outline=(255, 255, 255))
+
+    # Add text
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
+    except:
+        font = ImageFont.load_default()
+    draw.text((250, 30), "Sample Image", fill=(255, 255, 255), font=font)
+
+    # Convert to bytes
+    buf = BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+
+    return StreamingResponse(buf, media_type="image/png")
+
+
 configure(fastapi_app, BBoxAnnotatorApp)
 
 
