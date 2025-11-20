@@ -2,6 +2,7 @@
 Manual test for toy_mouse_test.py to debug mouse event handling.
 Run this AFTER starting: uv run uvicorn toy_mouse_test:fastapi_app --host 127.0.0.1 --port 8003
 """
+
 import asyncio
 from playwright.async_api import async_playwright
 
@@ -12,7 +13,9 @@ async def main():
         page = await browser.new_page()
 
         # Enable console logging
-        page.on("console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}"))
+        page.on(
+            "console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}")
+        )
         page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
 
         print("=" * 60)
@@ -119,12 +122,13 @@ async def main():
         # Check for offsetX/offsetY values
         print("\n=== Checking offsetX/offsetY Values ===")
         import re
+
         offset_pattern = r"offsetX=(\d+), offsetY=(\d+)"
         matches = re.findall(offset_pattern, content)
         if matches:
             print(f"✓ Found {len(matches)} events with offsetX/offsetY:")
             for i, (x, y) in enumerate(matches[:5]):  # Show first 5
-                print(f"  Event {i+1}: offsetX={x}, offsetY={y}")
+                print(f"  Event {i + 1}: offsetX={x}, offsetY={y}")
         else:
             print("✗ No offsetX/offsetY values found in event log")
             # Check for -1 values (indicating missing offsetX/offsetY)
@@ -137,7 +141,9 @@ async def main():
 
         # Take screenshot
         print("\n=== Taking Screenshot ===")
-        await page.screenshot(path="/home/user/reactpy_bbox_annotator_sandbox/toy_mouse_screenshot.png")
+        await page.screenshot(
+            path="/home/user/reactpy_bbox_annotator_sandbox/toy_mouse_screenshot.png"
+        )
         print("Screenshot saved to toy_mouse_screenshot.png")
 
         await browser.close()

@@ -1,16 +1,24 @@
 """
-Toy problem to understand ReactPy 1.1.0 async patterns and html element syntax.
+Toy problem to understand ReactPy async patterns and html element syntax.
 This helps us fix the issues in app.py.
 """
+
 import asyncio
+
 import pytest
-from reactpy import component, html, use_state, use_effect
-from reactpy.testing import DisplayFixture, BackendFixture
-from reactpy.core.events import event
+from reactpy import component, html, use_effect, use_state
+from reactpy.testing import BackendFixture, DisplayFixture
+
+
+@pytest.fixture
+async def display():
+    async with BackendFixture() as backend:
+        async with DisplayFixture(backend=backend) as display:
+            yield display
 
 
 @pytest.mark.asyncio
-async def test_use_effect_with_async():
+async def test_use_effect_with_async(display: DisplayFixture):
     """Test async operations in use_effect."""
 
     @component
@@ -24,13 +32,14 @@ async def test_use_effect_with_async():
 
         return html.div(data)
 
-    async with DisplayFixture(AsyncComponent) as display:
-        await display.poll(lambda: display.root.children[0] == "loaded", timeout=1.0)
-        assert display.root.children[0] == "loaded"
+    await display.show(AsyncComponent)
+    await display.page.wait_for_selector("text=loaded")
+    content = await display.page.text_content("#app")
+    assert content is not None and "loaded" in content
 
 
 @pytest.mark.asyncio
-async def test_button_with_event_and_style():
+async def test_button_with_event_and_style(display: DisplayFixture):
     """Test html.button with event handler and style props."""
 
     @component
@@ -44,23 +53,24 @@ async def test_button_with_event_and_style():
             html.button(
                 {
                     "on_click": handle_click,
-                    "style": {"cursor": "pointer", "width": "120px"}
+                    "style": {"cursor": "pointer", "width": "120px"},
                 },
-                f"Clicked {count} times"
+                f"Clicked {count} times",
             )
         )
 
-    async with DisplayFixture(ButtonComponent) as display:
-        await display.poll(lambda: "Clicked 0 times" in str(display.root), timeout=1.0)
-
-        # Find the button element in VDOM
-        button = display.root.children[0]
-        assert button["tagName"] == "button"
-        assert button["attributes"]["style"]["cursor"] == "pointer"
+    await display.show(ButtonComponent)
+    button = await display.page.wait_for_selector("button")
+    text = await button.text_content()
+    assert text is not None and "Clicked 0 times" in text
+    cursor = await button.evaluate("el => el.style.cursor")
+    width = await button.evaluate("el => el.style.width")
+    assert cursor == "pointer"
+    assert width == "120px"
 
 
 @pytest.mark.asyncio
-async def test_multiple_html_elements():
+async def test_multiple_html_elements(display: DisplayFixture):
     """Test various html elements with props."""
 
     @component
@@ -75,44 +85,31 @@ async def test_multiple_html_elements():
 
         return html.div(
             html.h2("Test Title"),
-            html.input({
-                "type": "text",
-                "value": text,
-                "on_change": on_input,
-                "placeholder": "Enter text"
-            }),
-            html.button(
-                {"on_click": on_submit},
-                "Submit"
+            html.input(
+                {
+                    "type": "text",
+                    "value": text,
+                    "on_change": on_input,
+                    "placeholder": "Enter text",
+                }
             ),
-            html.p(text if text else "No text yet")
+            html.button({"on_click": on_submit}, "Submit"),
+            html.p(text if text else "No text yet"),
         )
 
-    async with DisplayFixture(MultiElementComponent) as display:
-        await display.poll(lambda: display.root is not None, timeout=1.0)
-
-        # Verify structure
-        assert display.root["tagName"] == "div"
-        assert len(display.root["children"]) == 4
-
-        # Verify h2
-        h2 = display.root["children"][0]
-        assert h2["tagName"] == "h2"
-        assert h2["children"][0] == "Test Title"
-
-        # Verify input
-        input_elem = display.root["children"][1]
-        assert input_elem["tagName"] == "input"
-        assert input_elem["attributes"]["type"] == "text"
-
-        # Verify button
-        button = display.root["children"][2]
-        assert button["tagName"] == "button"
-        assert button["children"][0] == "Submit"
+    await display.show(MultiElementComponent)
+    await display.page.wait_for_selector("h2:has-text('Test Title')")
+    input_elem = await display.page.wait_for_selector("input[type='text']")
+    placeholder = await input_elem.get_attribute("placeholder")
+    assert placeholder == "Enter text"
+    await display.page.wait_for_selector("button:has-text('Submit')")
+    paragraph = await display.page.wait_for_selector("p")
+    para_text = await paragraph.text_content()
+    assert para_text is not None and "No text yet" in para_text
 
 
 @pytest.mark.asyncio
-async def test_conditional_rendering():
+async def test_conditional_rendering(display: DisplayFixture):
     """Test conditional rendering patterns."""
 
     @component
@@ -127,50 +124,36 @@ async def test_conditional_rendering():
         else:
             content = html.p("Hidden state")
 
-        return html.div(
-            html.button({"on_click": toggle}, "Toggle"),
-            content
-        )
+        return html.div(html.button({"on_click": toggle}, "Toggle"), content)
 
-    async with DisplayFixture(ConditionalComponent) as display:
-        await display.poll(lambda: display.root is not None, timeout=1.0)
-
-        # Initial state
-        p_elem = display.root["children"][1]
-        assert p_elem["children"][0] == "Visible content"
+    await display.show(ConditionalComponent)
+    await display.page.wait_for_selector("p:has-text('Visible content')")
 
 
 @pytest.mark.asyncio
-async def test_nested_components_with_state():
+async def test_nested_components_with_state(display: DisplayFixture):
     """Test nested components with state management."""
 
     @component
     def ChildComponent(value, on_change):
         return html.button(
-            {"on_click": lambda e: on_change(value + 1)},
-            f"Value: {value}"
+            {"on_click": lambda e: on_change(value + 1)}, f"Value: {value}"
         )
 
     @component
     def ParentComponent():
         count, set_count = use_state(0)
 
-        return html.div(
-            html.h3("Parent"),
-            ChildComponent(count, set_count)
-        )
+        return html.div(html.h3("Parent"), ChildComponent(count, set_count))
 
-    async with DisplayFixture(ParentComponent) as display:
-        await display.poll(lambda: display.root is not None, timeout=1.0)
-
-        # Verify child button
-        button = display.root["children"][1]
-        assert button["tagName"] == "button"
-        assert "Value: 0" in str(button["children"])
+    await display.show(ParentComponent)
+    button = await display.page.wait_for_selector("button")
+    text = await button.text_content()
+    assert text is not None and "Value: 0" in text
 
 
 @pytest.mark.asyncio
-async def test_use_effect_with_dependencies():
+async def test_use_effect_with_dependencies(display: DisplayFixture):
     """Test use_effect with dependencies array."""
 
     @component
@@ -185,21 +168,15 @@ async def test_use_effect_with_dependencies():
 
         return html.div(
             html.button({"on_click": lambda e: set_url("url2")}, "Change URL"),
-            html.p(meta if meta else "Loading...")
+            html.p(meta if meta else "Loading..."),
         )
 
-    async with DisplayFixture(EffectComponent) as display:
-        await display.poll(
-            lambda: "Meta for url1" in str(display.root),
-            timeout=1.0
-        )
-
-        p_elem = display.root["children"][1]
-        assert "Meta for url1" in str(p_elem["children"])
+    await display.show(EffectComponent)
+    await display.page.wait_for_selector("p:has-text('Meta for url1')")
 
 
 @pytest.mark.asyncio
-async def test_async_image_meta_pattern():
+async def test_async_image_meta_pattern(display: DisplayFixture):
     """Test the pattern we need for async image metadata loading."""
 
     @component
@@ -212,9 +189,7 @@ async def test_async_image_meta_pattern():
         async def fetch_meta():
             set_loading(True)
             try:
-                # Simulate async fetch
                 await asyncio.sleep(0.05)
-                # In real code, this would fetch actual image metadata
                 new_meta = {"width": 800, "height": 600}
                 set_meta(new_meta)
             finally:
@@ -224,26 +199,20 @@ async def test_async_image_meta_pattern():
             content = html.p("Loading image metadata...")
         else:
             content = html.div(
-                html.p(f"Width: {meta['width']}"),
-                html.p(f"Height: {meta['height']}")
+                html.p(f"Width: {meta['width']}"), html.p(f"Height: {meta['height']}")
             )
 
         return html.div(
-            html.input({
-                "type": "text",
-                "value": url,
-                "on_change": lambda e: set_url(e["target"]["value"])
-            }),
-            content
+            html.input(
+                {
+                    "type": "text",
+                    "value": url,
+                    "on_change": lambda e: set_url(e["target"]["value"]),
+                }
+            ),
+            content,
         )
 
-    async with DisplayFixture(ImageMetaLoader) as display:
-        await display.poll(
-            lambda: "Width: 800" in str(display.root),
-            timeout=1.0
-        )
-
-        # Verify metadata was loaded
-        div_content = display.root["children"][1]
-        assert "Width: 800" in str(div_content)
-        assert "Height: 600" in str(div_content)
+    await display.show(ImageMetaLoader)
+    await display.page.wait_for_selector("p:has-text('Width: 800')")
+    await display.page.wait_for_selector("p:has-text('Height: 600')")

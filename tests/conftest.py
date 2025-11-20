@@ -1,9 +1,10 @@
 """
 pytest configuration and fixtures for E2E tests.
 """
-import asyncio
+
 import multiprocessing
 import time
+from pathlib import Path
 import pytest
 import uvicorn
 from playwright.async_api import async_playwright
@@ -12,8 +13,11 @@ from playwright.async_api import async_playwright
 def run_server():
     """Run FastAPI server in a separate process."""
     import sys
-    sys.path.insert(0, "/home/user/reactpy_bbox_annotator_sandbox")
+
+    project_root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(project_root))
     from app import fastapi_app
+
     uvicorn.run(fastapi_app, host="127.0.0.1", port=8000, log_level="error")
 
 

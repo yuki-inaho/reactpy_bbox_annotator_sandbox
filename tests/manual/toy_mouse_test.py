@@ -3,6 +3,7 @@ Toy problem to debug mouse interaction events in ReactPy.
 This isolates the issue: Are mouse events (onMouseDown/Move/Up) working correctly?
 Run with: uv run uvicorn toy_mouse_test:app --host 127.0.0.1 --port 8003
 """
+
 from fastapi import FastAPI
 from reactpy import component, html, use_state
 from reactpy.backend.fastapi import configure
@@ -83,8 +84,12 @@ def ToyMouseApp():
     # Canvas children
     canvas_children = []
     if rect_info and rect_info["width"] > 5 and rect_info["height"] > 5:
-        color = "rgba(127,255,127,0.3)" if status == "dragging" else "rgba(255,127,127,0.3)"
-        border_color = "rgb(127,255,127)" if status == "dragging" else "rgb(255,127,127)"
+        color = (
+            "rgba(127,255,127,0.3)" if status == "dragging" else "rgba(255,127,127,0.3)"
+        )
+        border_color = (
+            "rgb(127,255,127)" if status == "dragging" else "rgb(255,127,127)"
+        )
 
         canvas_children.append(
             html.div(
@@ -135,18 +140,27 @@ def ToyMouseApp():
         html.h1("Toy Mouse Interaction Test"),
         html.div(
             {"style": {"marginBottom": "10px"}},
-            html.span({"style": {"fontWeight": "bold", "color": status_color}}, f"Status: {status}"),
+            html.span(
+                {"style": {"fontWeight": "bold", "color": status_color}},
+                f"Status: {status}",
+            ),
             html.button(
-                {"onClick": event(lambda e: reset()), "style": {"marginLeft": "20px", "cursor": "pointer"}},
-                "Reset"
+                {
+                    "onClick": event(lambda e: reset()),
+                    "style": {"marginLeft": "20px", "cursor": "pointer"},
+                },
+                "Reset",
             ),
         ),
+        html.div({"style": {"marginBottom": "20px"}}, canvas),
         html.div(
-            {"style": {"marginBottom": "20px"}},
-            canvas
-        ),
-        html.div(
-            {"style": {"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px"}},
+            {
+                "style": {
+                    "display": "grid",
+                    "gridTemplateColumns": "1fr 1fr",
+                    "gap": "10px",
+                }
+            },
             html.div(
                 html.h3("Mouse Data:"),
                 html.pre(
@@ -154,15 +168,21 @@ def ToyMouseApp():
                     f"Start: {start_pos}\n"
                     f"Current: {current_pos}\n"
                     f"End: {end_pos}\n"
-                    f"Rect: {rect_info}"
-                )
+                    f"Rect: {rect_info}",
+                ),
             ),
             html.div(
                 html.h3("Event Log (last 10):"),
                 html.pre(
-                    {"style": {"fontSize": "12px", "height": "200px", "overflow": "auto"}},
-                    "\n".join(event_log) if event_log else "(no events yet)"
-                )
+                    {
+                        "style": {
+                            "fontSize": "12px",
+                            "height": "200px",
+                            "overflow": "auto",
+                        }
+                    },
+                    "\n".join(event_log) if event_log else "(no events yet)",
+                ),
             ),
         ),
     )
@@ -174,4 +194,5 @@ configure(fastapi_app, ToyMouseApp)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("toy_mouse_test:fastapi_app", host="0.0.0.0", port=8003, reload=True)

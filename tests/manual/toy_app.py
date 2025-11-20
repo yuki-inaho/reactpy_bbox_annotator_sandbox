@@ -2,6 +2,7 @@
 Toy app to test ReactPy 1.1.0 patterns in isolation.
 Run with: uv run uvicorn toy_app:app --host 127.0.0.1 --port 8001
 """
+
 import asyncio
 from dataclasses import dataclass
 from fastapi import FastAPI
@@ -29,10 +30,7 @@ def TestAsyncEffect():
         await asyncio.sleep(0.5)
         set_data("Data loaded!")
 
-    return html.div(
-        html.h3("Test 1: Async use_effect"),
-        html.p(data)
-    )
+    return html.div(html.h3("Test 1: Async use_effect"), html.p(data))
 
 
 @component
@@ -48,10 +46,10 @@ def TestButtonSyntax():
         html.button(
             {
                 "on_click": handle_click,
-                "style": {"cursor": "pointer", "width": "200px", "padding": "10px"}
+                "style": {"cursor": "pointer", "width": "200px", "padding": "10px"},
             },
-            f"Clicked {count} times"
-        )
+            f"Clicked {count} times",
+        ),
     )
 
 
@@ -93,7 +91,7 @@ def TestImageMetaPattern():
         content = html.div(
             html.p(f"URL: {meta.url}"),
             html.p(f"Width: {meta.width}px"),
-            html.p(f"Height: {meta.height}px")
+            html.p(f"Height: {meta.height}px"),
         )
     else:
         content = html.p("No metadata")
@@ -101,21 +99,23 @@ def TestImageMetaPattern():
     return html.div(
         html.h3("Test 3: Image metadata pattern"),
         html.div(
-            html.input({
-                "type": "text",
-                "value": url,
-                "on_change": handle_url_change,
-                "style": {"width": "400px", "padding": "5px"}
-            }),
+            html.input(
+                {
+                    "type": "text",
+                    "value": url,
+                    "on_change": handle_url_change,
+                    "style": {"width": "400px", "padding": "5px"},
+                }
+            ),
             html.button(
                 {
                     "on_click": handle_load_click,
-                    "style": {"margin_left": "10px", "padding": "5px 15px"}
+                    "style": {"margin_left": "10px", "padding": "5px 15px"},
                 },
-                "Reload"
-            )
+                "Reload",
+            ),
         ),
-        content
+        content,
     )
 
 
@@ -138,13 +138,15 @@ def TestMultipleElements():
         html.h3("Test 4: Multiple element types"),
         html.div(
             html.label("Text input: "),
-            html.input({
-                "type": "text",
-                "value": text,
-                "on_change": on_input_change,
-                "placeholder": "Enter text",
-                "style": {"padding": "5px"}
-            })
+            html.input(
+                {
+                    "type": "text",
+                    "value": text,
+                    "on_change": on_input_change,
+                    "placeholder": "Enter text",
+                    "style": {"padding": "5px"},
+                }
+            ),
         ),
         html.div(
             html.label("Select: "),
@@ -152,19 +154,18 @@ def TestMultipleElements():
                 {
                     "value": selected,
                     "on_change": on_select_change,
-                    "style": {"padding": "5px"}
+                    "style": {"padding": "5px"},
                 },
                 html.option({"value": "option1"}, "Option 1"),
                 html.option({"value": "option2"}, "Option 2"),
-                html.option({"value": "option3"}, "Option 3")
-            )
+                html.option({"value": "option3"}, "Option 3"),
+            ),
         ),
         html.button(
-            {"on_click": on_submit, "style": {"padding": "5px 15px"}},
-            "Submit"
+            {"on_click": on_submit, "style": {"padding": "5px 15px"}}, "Submit"
         ),
         html.p(f"Text: {text}"),
-        html.p(f"Selected: {selected}")
+        html.p(f"Selected: {selected}"),
     )
 
 
@@ -183,9 +184,15 @@ def TestConditionalRendering():
     # Conditional content
     if show_details:
         details = html.div(
-            {"style": {"background_color": "#f0f0f0", "padding": "10px", "margin": "10px 0"}},
+            {
+                "style": {
+                    "background_color": "#f0f0f0",
+                    "padding": "10px",
+                    "margin": "10px 0",
+                }
+            },
             html.p(f"Current status: {status}"),
-            html.p("This is additional detail content")
+            html.p("This is additional detail content"),
         )
     else:
         details = None
@@ -194,15 +201,21 @@ def TestConditionalRendering():
         html.h3("Test 5: Conditional rendering"),
         html.div(
             html.button({"on_click": change_status("free")}, "Free"),
-            html.button({"on_click": change_status("busy"), "style": {"margin_left": "5px"}}, "Busy"),
-            html.button({"on_click": change_status("waiting"), "style": {"margin_left": "5px"}}, "Waiting")
+            html.button(
+                {"on_click": change_status("busy"), "style": {"margin_left": "5px"}},
+                "Busy",
+            ),
+            html.button(
+                {"on_click": change_status("waiting"), "style": {"margin_left": "5px"}},
+                "Waiting",
+            ),
         ),
         html.p(f"Status: {status}"),
         html.button(
             {"on_click": toggle_details},
-            f"{'Hide' if show_details else 'Show'} Details"
+            f"{'Hide' if show_details else 'Show'} Details",
         ),
-        details if details else html.div()
+        details if details else html.div(),
     )
 
 
@@ -221,7 +234,7 @@ def ToyApp():
         html.hr(),
         TestMultipleElements(),
         html.hr(),
-        TestConditionalRendering()
+        TestConditionalRendering(),
     )
 
 

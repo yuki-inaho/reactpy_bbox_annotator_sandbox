@@ -1,6 +1,7 @@
 """
 Manual test to debug app.py rendering issues.
 """
+
 import asyncio
 from playwright.async_api import async_playwright
 

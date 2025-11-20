@@ -1,6 +1,7 @@
 """
 Manual test to verify ReactPy patterns work correctly.
 """
+
 import asyncio
 from playwright.async_api import async_playwright
 
@@ -60,7 +61,7 @@ async def main():
 
         # Test 5: Check select
         print("\nTest 5: Select element")
-        select_elem = page.locator('select').first
+        select_elem = page.locator("select").first
         if await select_elem.count() > 0:
             print("  ✓ Select element rendered")
             await select_elem.select_option("option2")
@@ -86,9 +87,9 @@ async def main():
         else:
             print("  ✗ Conditional button not found")
 
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("All pattern tests completed!")
-        print("="*50)
+        print("=" * 50)
 
         await browser.close()
 

@@ -3,11 +3,11 @@ Toy problem to debug canvas element detection in E2E tests.
 This isolates the issue: Why isn't the canvas element with background-image rendering?
 Run with: uv run uvicorn toy_canvas_test:app --host 127.0.0.1 --port 8002
 """
+
 import asyncio
 import urllib.request
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
@@ -66,11 +66,15 @@ def ToyCanvasApp():
             factor = min(1.0, MAX_DISPLAY_WIDTH / meta.width) if meta.width else 1.0
             set_scale(factor)
             set_image_meta(meta)
-            set_display_size({
-                "width": int(meta.width * factor),
-                "height": int(meta.height * factor),
-            })
-            print(f"[ToyCanvas] Display size: {int(meta.width * factor)}x{int(meta.height * factor)}")
+            set_display_size(
+                {
+                    "width": int(meta.width * factor),
+                    "height": int(meta.height * factor),
+                }
+            )
+            print(
+                f"[ToyCanvas] Display size: {int(meta.width * factor)}x{int(meta.height * factor)}"
+            )
         except Exception as exc:
             error_msg = f"Failed to load image: {exc}"
             print(f"[ToyCanvas ERROR] {error_msg}")
@@ -113,11 +117,10 @@ def ToyCanvasApp():
     return html.div(
         {"style": {"padding": "20px", "fontFamily": "sans-serif"}},
         html.h1("Toy Canvas Test"),
-        html.p({"style": {"color": "blue" if not error_message else "red"}}, status_text),
-        html.div(
-            {"style": {"marginTop": "20px"}},
-            canvas
+        html.p(
+            {"style": {"color": "blue" if not error_message else "red"}}, status_text
         ),
+        html.div({"style": {"marginTop": "20px"}}, canvas),
         html.div(
             {"style": {"marginTop": "20px"}},
             html.h3("Debug Info:"),
@@ -128,8 +131,8 @@ def ToyCanvasApp():
                 f"scale: {scale}\n"
                 f"loading: {loading}\n"
                 f"error_message: {error_message}"
-            )
-        )
+            ),
+        ),
     )
 
 
@@ -139,22 +142,28 @@ fastapi_app = FastAPI()
 @fastapi_app.get("/test_image.png")
 async def get_test_image():
     """Generate a test image."""
-    img = Image.new('RGB', (400, 300), color=(100, 150, 200))
+    img = Image.new("RGB", (400, 300), color=(100, 150, 200))
     draw = ImageDraw.Draw(img)
 
     # Draw a simple pattern
-    draw.rectangle([50, 50, 150, 150], fill=(255, 100, 100), outline=(255, 255, 255), width=3)
-    draw.ellipse([200, 100, 350, 250], fill=(100, 255, 100), outline=(255, 255, 255), width=3)
+    draw.rectangle(
+        [50, 50, 150, 150], fill=(255, 100, 100), outline=(255, 255, 255), width=3
+    )
+    draw.ellipse(
+        [200, 100, 350, 250], fill=(100, 255, 100), outline=(255, 255, 255), width=3
+    )
 
     # Add text
     try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30)
-    except:
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30
+        )
+    except Exception:  # noqa: BLE001
         font = ImageFont.load_default()
     draw.text((100, 20), "Test Image", fill=(255, 255, 255), font=font)
 
     buf = BytesIO()
-    img.save(buf, format='PNG')
+    img.save(buf, format="PNG")
     buf.seek(0)
 
     return StreamingResponse(buf, media_type="image/png")
@@ -165,4 +174,5 @@ configure(fastapi_app, ToyCanvasApp)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("toy_canvas_test:fastapi_app", host="0.0.0.0", port=8002, reload=True)

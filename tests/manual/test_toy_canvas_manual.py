@@ -2,6 +2,7 @@
 Manual test for toy_canvas_test.py to debug canvas element detection.
 Run this AFTER starting: uv run uvicorn toy_canvas_test:fastapi_app --host 127.0.0.1 --port 8002
 """
+
 import asyncio
 from playwright.async_api import async_playwright
 
@@ -12,7 +13,9 @@ async def main():
         page = await browser.new_page()
 
         # Enable console logging
-        page.on("console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}"))
+        page.on(
+            "console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}")
+        )
         page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
 
         # Navigate to toy app
@@ -89,7 +92,9 @@ async def main():
 
         # Take screenshot
         print("\n=== Taking Screenshot ===")
-        await page.screenshot(path="/home/user/reactpy_bbox_annotator_sandbox/toy_canvas_screenshot.png")
+        await page.screenshot(
+            path="/home/user/reactpy_bbox_annotator_sandbox/toy_canvas_screenshot.png"
+        )
         print("Screenshot saved to toy_canvas_screenshot.png")
 
         await browser.close()

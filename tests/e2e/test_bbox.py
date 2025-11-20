@@ -2,9 +2,8 @@
 E2E tests for BBox Annotator using Playwright.
 TDD approach: Write tests first, then implement functionality.
 """
-import asyncio
+
 import pytest
-from playwright.async_api import async_playwright, Page
 
 
 @pytest.mark.asyncio
@@ -101,7 +100,7 @@ async def test_bbox_annotation_text_mode(server, page):
     await page.wait_for_timeout(1000)
 
     # Input method を text に変更
-    input_method_select = page.locator('select').first  # input method selector
+    input_method_select = page.locator("select").first  # input method selector
     await input_method_select.select_option("text")
     await page.wait_for_timeout(500)
 

@@ -2,6 +2,7 @@
 Manual test to verify mouse interaction on app.py canvas.
 Run this AFTER starting: uv run uvicorn app:fastapi_app --host 127.0.0.1 --port 8000
 """
+
 import asyncio
 from playwright.async_api import async_playwright
 
@@ -12,7 +13,9 @@ async def main():
         page = await browser.new_page()
 
         # Enable console logging
-        page.on("console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}"))
+        page.on(
+            "console", lambda msg: print(f"BROWSER CONSOLE [{msg.type}]: {msg.text}")
+        )
         page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
 
         print("=" * 60)
@@ -91,7 +94,9 @@ async def main():
 
         # Take screenshot
         print("\n=== Taking Screenshot ===")
-        await page.screenshot(path="/home/user/reactpy_bbox_annotator_sandbox/app_interaction_screenshot.png")
+        await page.screenshot(
+            path="/home/user/reactpy_bbox_annotator_sandbox/app_interaction_screenshot.png"
+        )
         print("Screenshot saved to app_interaction_screenshot.png")
 
         await browser.close()
