@@ -13,11 +13,9 @@ build/
 venv/
 ENV/
 
-# uv
-uv.lock
-
 # Temporary files
 temp/
+uploads/
 
 # IDE
 .vscode/
@@ -31,3 +29,8 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Development
+.claude
+.serena
+.ruff_cache
