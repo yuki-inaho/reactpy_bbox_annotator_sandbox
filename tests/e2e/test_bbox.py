@@ -36,16 +36,10 @@ async def test_bbox_annotator_basic_flow(server, page):
     div_count = await all_divs.count()
     print(f"\n=== Total divs: {div_count} ===")
 
-    # backgroundImageを含むstyleを持つ要素を探す
+    # ReactPyはbackgroundImageをbackground-image(kebab-case)に変換する
     canvas = page.locator('[style*="background-image"]')
     count = await canvas.count()
-    print(f"\n=== Canvas with 'background-image': {count} ===")
-
-    if count == 0:
-        # Try alternate selector
-        canvas = page.locator('div[style*="position: relative"]')
-        count = await canvas.count()
-        print(f"\n=== Divs with 'position: relative': {count} ===")
+    print(f"\n=== Canvas with 'background-image' (kebab-case): {count} ===")
 
     # canvas要素が存在することを確認
     assert count > 0, f"Canvas element not found. Page has {div_count} divs total."
@@ -63,7 +57,7 @@ async def test_bbox_annotation_select_mode(server, page):
     await page.wait_for_timeout(1000)
 
     # Canvas要素を取得
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     box = await canvas.bounding_box()
     assert box is not None
 
@@ -112,7 +106,7 @@ async def test_bbox_annotation_text_mode(server, page):
     await page.wait_for_timeout(500)
 
     # ボックスを作成
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     box = await canvas.bounding_box()
     assert box is not None
 
@@ -154,7 +148,7 @@ async def test_bbox_delete_entry(server, page):
     await page.wait_for_timeout(1000)
 
     # ボックスを作成してラベルを追加
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     box = await canvas.bounding_box()
     assert box is not None
 
@@ -192,7 +186,7 @@ async def test_bbox_reset_entries(server, page):
     await page.wait_for_timeout(1000)
 
     # 2つのボックスを作成
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     box = await canvas.bounding_box()
     assert box is not None
 
@@ -248,7 +242,7 @@ async def test_bbox_change_image_url(server, page):
     await page.wait_for_timeout(2000)  # 画像読み込みを待つ
 
     # 画像が切り替わったことを確認
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     style = await canvas.get_attribute("style")
     assert new_url in style or "via.placeholder.com" in style
 
@@ -265,7 +259,7 @@ async def test_bbox_cancel_input(server, page):
     await page.wait_for_timeout(1000)
 
     # ボックスを作成
-    canvas = page.locator('[style*="backgroundImage"]').first
+    canvas = page.locator('[style*="background-image"]').first
     box = await canvas.bounding_box()
     assert box is not None
 

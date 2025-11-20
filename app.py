@@ -28,6 +28,10 @@ class ImageMeta:
 
 def _fetch_image_meta(url: str) -> ImageMeta:
     """Fetch image metadata from URL. Cache disabled for debugging."""
+    # Handle relative URLs by converting to absolute
+    if url.startswith("/"):
+        url = f"http://127.0.0.1:8000{url}"
+
     with urllib.request.urlopen(url) as response:
         data = response.read()
     with Image.open(BytesIO(data)) as img:

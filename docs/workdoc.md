@@ -229,4 +229,15 @@ PY
 | 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: トイプロブレム作成 | ✅ toy_app.py作成、7つのパターンテスト全てGREEN確認 |
 | 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: app.py修正 | ✅ use_effectをasync対応、html要素引数順序修正(props→content) |
 | 2025-11-20 | 08:35:49 UTC+0000 | Claude | 手順10継続: E2Eテスト実行 | 🔄 basic_flow testがタイムアウト、デバッグ中 |
+| 2025-11-20 | 08:44:24 UTC+0000 | Claude | 手順10継続: ローカル画像生成 | ✅ /sample_image.pngエンドポイント追加、Pillowで800x600画像生成 |
+| 2025-11-20 | 08:44:24 UTC+0000 | Claude | git commit & push | ✅ 7ファイル(721行追加)をcommit、48c9abbでpush完了 |
+| 2025-11-20 | 08:44:24 UTC+0000 | Claude | 手順10継続: 相対URL問題特定 | 🔄 _fetch_image_meta()がurllib.request.urlopenで相対URL処理不可、修正必要 |
+| 2025-11-20 | 08:48:12 UTC+0000 | Claude | 手順10継続: canvas検出トイプロブレム作成 | ✅ toy_canvas_test.py作成、相対URL変換処理追加 |
+| 2025-11-20 | 08:49:37 UTC+0000 | Claude | 手順10継続: toy_canvas_test実行 | ✅ 手動テスト成功、background-image(kebab-case)でcanvas要素検出確認 |
+| 2025-11-20 | 08:50:11 UTC+0000 | Claude | 手順10継続: app.py相対URL修正 | ✅ _fetch_image_meta()に相対URL→絶対URL変換処理追加 |
+| 2025-11-20 | 08:50:42 UTC+0000 | Claude | 手順10継続: E2Eセレクタ修正 | ✅ test_bbox.pyの全セレクタをbackgroundImage→background-imageに変更（7箇所） |
+| 2025-11-20 | 08:51:57 UTC+0000 | Claude | 手順10継続: E2E basic_flow実行 | ✅ test_bbox_annotator_basic_flow PASSED、canvas要素検出成功 |
+| 2025-11-20 | 08:53:27 UTC+0000 | Claude | 手順10継続: E2E全テスト実行 | 🔄 4 passed, 3 failed（select_mode, text_mode, delete_entry）マウスインタラクション未動作 |
+| 2025-11-20 | 08:54:52 UTC+0000 | Claude | 状況報告: 作業記録更新 | 🔄 チェックリスト確認中、マウスイベント問題調査中 |
+| 2025-11-20 | 08:55:46 UTC+0000 | Claude | 今回セッションの重要な気づき | ✅ 【成功要因1】ReactPyは`backgroundImage`(camelCase)を`background-image`(kebab-case)に自動変換する。toy_canvas_testで検証完了。【成功要因2】相対URL（`/sample_image.png`）は`urllib.request.urlopen`で処理不可、`http://127.0.0.1:8000`を前置して解決。【失敗要因】Playwrightの`page.mouse`操作がReactPyの`onMouseDown/Move/Up`イベントで`offsetX/Y`を正しく受け取れていない可能性。3テスト失敗中。【学習】トイプロブレムによる問題分離が極めて有効。複雑な問題を最小限の再現コードで検証することで根本原因を特定できた。 |
 | | | | | |
