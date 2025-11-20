@@ -9,6 +9,7 @@ Security Features:
 - DoS protection with image size limits
 - Input sanitization for labels and URLs
 """
+
 import asyncio
 import ipaddress
 import json
@@ -17,12 +18,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageDraw, ImageFont
 from reactpy import component, html, use_effect, use_state
 from reactpy.backend.fastapi import configure
@@ -32,7 +34,10 @@ from reactpy.core.events import event
 MAX_DISPLAY_WIDTH = 900
 DEFAULT_IMAGE_URL = "/sample_image.png"
 DEFAULT_LABELS = "Object A,Object B,Background"
-MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB limit for DoS protection
+MAX_IMAGE_SIZE = 100 * 1024 * 1024  # 100MB limit for large images
+ALLOWED_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # SSRF protection: allowed protocols
 ALLOWED_PROTOCOLS: Set[str] = {"http", "https"}
@@ -51,6 +56,7 @@ BLOCKED_HOSTS: Set[str] = {
 @dataclass(frozen=True)
 class ImageMeta:
     """Metadata for an image, including dimensions."""
+
     width: int
     height: int
 
@@ -132,7 +138,7 @@ def _fetch_image_meta(url: str) -> ImageMeta:
     # Fetch image with timeout and size limits
     with urllib.request.urlopen(url, timeout=10) as response:
         # Check Content-Length header if available
-        content_length = response.headers.get('Content-Length')
+        content_length = response.headers.get("Content-Length")
         if content_length and int(content_length) > MAX_IMAGE_SIZE:
             raise ValueError(
                 f"Image too large: {content_length} bytes (max {MAX_IMAGE_SIZE} bytes)"
@@ -509,7 +515,7 @@ def BBoxAnnotatorApp():
                         prevent_default=True,
                     ),
                 },
-                "x"
+                "x",
             ),
             html.div(
                 {
@@ -523,7 +529,7 @@ def BBoxAnnotatorApp():
                         "fontSize": "12px",
                     }
                 },
-                entry["label"]
+                entry["label"],
             ),
         )
         canvas_children.append(box)
@@ -568,7 +574,7 @@ def BBoxAnnotatorApp():
                         "onClick": event(lambda evt: clear_draft()),
                         "style": {"cursor": "pointer"},
                     },
-                    "Cancel"
+                    "Cancel",
                 ),
             )
         else:
@@ -598,14 +604,14 @@ def BBoxAnnotatorApp():
                         "onClick": event(lambda evt: add_entry(label_value)),
                         "style": {"cursor": "pointer"},
                     },
-                    "Add"
+                    "Add",
                 ),
                 html.button(
                     {
                         "onClick": event(lambda evt: clear_draft()),
                         "style": {"cursor": "pointer"},
                     },
-                    "Cancel"
+                    "Cancel",
                 ),
             )
 
@@ -618,8 +624,12 @@ def BBoxAnnotatorApp():
         {
             "style": {
                 "position": "relative",
-                "width": f"{display_size['width']}px" if display_size["width"] else "720px",
-                "height": f"{display_size['height']}px" if display_size["height"] else "440px",
+                "width": f"{display_size['width']}px"
+                if display_size["width"]
+                else "720px",
+                "height": f"{display_size['height']}px"
+                if display_size["height"]
+                else "440px",
                 "backgroundImage": f"url({image_url})",
                 "backgroundSize": "100% 100%" if display_size["width"] else "contain",
                 "backgroundRepeat": "no-repeat",
@@ -650,6 +660,7 @@ def BBoxAnnotatorApp():
             html.input(
                 {
                     "type": "text",
+                    "id": "image-url-input",
                     "value": url_text,
                     "onChange": event(
                         lambda evt: set_url_text(evt.get("target", {}).get("value", ""))
@@ -662,8 +673,41 @@ def BBoxAnnotatorApp():
                     "onClick": event(lambda evt: set_image_url(url_text.strip())),
                     "style": {"cursor": "pointer", "width": "120px"},
                 },
-                "Load image"
+                "Load image",
             ),
+        ),
+        html.div(
+            {"style": {"display": "flex", "flexDirection": "column", "gap": "4px"}},
+            html.label("Upload local image"),
+            html.form(
+                {
+                    "action": "/api/upload",
+                    "method": "post",
+                    "encType": "multipart/form-data",
+                    "target": "upload-frame",
+                    "style": {
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "gap": "4px",
+                    },
+                },
+                html.input(
+                    {
+                        "type": "file",
+                        "name": "file",
+                        "accept": "image/*",
+                        "style": {"width": "100%"},
+                    }
+                ),
+                html.button(
+                    {
+                        "type": "submit",
+                        "style": {"cursor": "pointer", "width": "140px"},
+                    },
+                    "Upload and load",
+                ),
+            ),
+            html.iframe({"name": "upload-frame", "style": {"display": "none"}}),
         ),
         html.div(
             {"style": {"display": "flex", "flexDirection": "column", "gap": "4px"}},
@@ -703,7 +747,7 @@ def BBoxAnnotatorApp():
                     "onClick": event(lambda evt: set_entries([])),
                     "style": {"cursor": "pointer"},
                 },
-                "Reset entries"
+                "Reset entries",
             ),
         ),
         html.div(
@@ -750,6 +794,22 @@ def BBoxAnnotatorApp():
         json.dumps(normalized_entries, indent=2),
     )
 
+    upload_listener_script = html.script(
+        """
+        (function() {
+          window.addEventListener('message', function(event) {
+            if (!event.data || !event.data.uploadedUrl) return;
+            var input = document.getElementById('image-url-input');
+            if (input) {
+              input.value = event.data.uploadedUrl;
+              var ev = new Event('input', { bubbles: true });
+              input.dispatchEvent(ev);
+            }
+          });
+        })();
+        """
+    )
+
     return html.div(
         {
             "style": {
@@ -775,34 +835,87 @@ def BBoxAnnotatorApp():
             canvas,
             entries_view,
         ),
+        upload_listener_script,
     )
 
 
 fastapi_app = FastAPI()
+fastapi_app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
+
+@fastapi_app.post("/api/upload")
+async def upload_image(file: UploadFile = File(...)):
+    """
+    Upload an image from the browser and return a public URL.
+
+    The response is a small HTML that posts the uploaded URL to the parent window.
+    This lets the ReactPy UI receive the URL without navigating away.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Filename is required")
+
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in ALLOWED_IMAGE_SUFFIXES:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    data = await file.read(MAX_IMAGE_SIZE + 1)
+    if len(data) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=400, detail="Image exceeds maximum size")
+
+    # Validate image
+    try:
+        with Image.open(BytesIO(data)) as img:
+            img.verify()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="Invalid image file") from exc
+
+    upload_id = uuid.uuid4().hex
+    filename = f"{upload_id}{suffix or '.png'}"
+    save_path = UPLOAD_DIR / filename
+    save_path.write_bytes(data)
+
+    public_url = f"/uploads/{filename}"
+    body = (
+        "<script>"
+        f"window.parent.postMessage({json.dumps({'uploadedUrl': public_url})}, '*');"
+        "</script>"
+        "Uploaded"
+    )
+    return HTMLResponse(content=body)
 
 
 @fastapi_app.get("/sample_image.png")
 async def get_sample_image():
     """Generate a sample image for testing."""
     # Create 800x600 image with gradient background
-    img = Image.new('RGB', (800, 600), color=(73, 109, 137))
+    img = Image.new("RGB", (800, 600), color=(73, 109, 137))
     draw = ImageDraw.Draw(img)
 
     # Draw some shapes for visual reference
-    draw.rectangle([100, 100, 300, 300], fill=(200, 100, 100), outline=(255, 255, 255), width=3)
-    draw.ellipse([400, 150, 650, 400], fill=(100, 200, 100), outline=(255, 255, 255), width=3)
-    draw.polygon([(200, 450), (350, 500), (150, 550)], fill=(100, 100, 200), outline=(255, 255, 255))
+    draw.rectangle(
+        [100, 100, 300, 300], fill=(200, 100, 100), outline=(255, 255, 255), width=3
+    )
+    draw.ellipse(
+        [400, 150, 650, 400], fill=(100, 200, 100), outline=(255, 255, 255), width=3
+    )
+    draw.polygon(
+        [(200, 450), (350, 500), (150, 550)],
+        fill=(100, 100, 200),
+        outline=(255, 255, 255),
+    )
 
     # Add text
     try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
-    except:
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40
+        )
+    except Exception:  # noqa: BLE001
         font = ImageFont.load_default()
     draw.text((250, 30), "Sample Image", fill=(255, 255, 255), font=font)
 
     # Convert to bytes
     buf = BytesIO()
-    img.save(buf, format='PNG')
+    img.save(buf, format="PNG")
     buf.seek(0)
 
     return StreamingResponse(buf, media_type="image/png")
