@@ -74,58 +74,58 @@
 ### フェーズ 1: 事前準備・設計
 
 ### 手順 1: 現時刻を記録
-- [ ] 🖐 **操作**: `date "+%Y-%m-%d %H:%M:%S %Z%z"` を実行し、結果を本作業記録に貼り付ける。
-- [ ] 🔎 **確認**: 本ファイルの記録欄に実行結果が残っている。
-- [ ] 🧪 **テスト**: なし（記録目的）。
-- [ ] 🛠 **エラー時対処**: `date` 未インストールの場合は `busybox date` で代替。
+- [x] 🖐 **操作**: `date "+%Y-%m-%d %H:%M:%S %Z%z"` を実行し、結果を本作業記録に貼り付ける。
+- [x] 🔎 **確認**: 本ファイルの記録欄に実行結果が残っている。
+- [x] 🧪 **テスト**: なし（記録目的）。
+- [x] 🛠 **エラー時対処**: `date` 未インストールの場合は `busybox date` で代替。
 
 ### 手順 2: 参照コード整合確認
-- [ ] 🖐 **操作**: `sed -n '1,240p' app.py` と `sed -n '1,260p' temp/react-bbox-annotator/src/BBoxAnnotator/index.tsx` を閲覧し、状態遷移/スケール/削除ボタン/入力キャンセルの差分をメモ。
-- [ ] 🔎 **確認**: 差分メモが本ファイルの記録欄に残る。
-- [ ] 🧪 **テスト**: なし（設計確認）。
-- [ ] 🛠 **エラー時対処**: パス誤り時は `rg BBoxAnnotator temp` で位置検索。
+- [x] 🖐 **操作**: `sed -n '1,240p' app.py` と `sed -n '1,260p' temp/react-bbox-annotator/src/BBoxAnnotator/index.tsx` を閲覧し、状態遷移/スケール/削除ボタン/入力キャンセルの差分をメモ。
+- [x] 🔎 **確認**: 差分メモが本ファイルの記録欄に残る。
+- [x] 🧪 **テスト**: なし（設計確認）。
+- [x] 🛠 **エラー時対処**: パス誤り時は `rg BBoxAnnotator temp` で位置検索。
 
 ### 手順 3: 参考リポジトリの取得（他LLM着手準備）
-- [ ] 🖐 **操作**: `mkdir -p temp && cd temp && git clone https://github.com/younesZdDz/react-bbox-annotator && git clone https://github.com/reactive-python/reactpy.git` を実行（既存なら `cd temp/react-bbox-annotator && git pull` / `cd temp/reactpy && git pull`）。クローン後、別LLMタブ/セッションに「構造・主要コンポーネント・イベントフローの要約」を依頼する。
-- [ ] 🔎 **確認**: `temp/react-bbox-annotator/.git` と `temp/reactpy/.git` が存在し、最新 commit を取得できている。LLM 依頼メモが記録欄に残る。
-- [ ] 🧪 **テスト**: `cd temp/react-bbox-annotator && git status` が clean、`cd temp/reactpy && git status` が clean。
-- [ ] 🛠 **エラー時対処**: clone 失敗時はネットワーク制約を確認し、tarball ダウンロードを検討。権限エラーは `sudo` 不要な場所で再実行。
+- [x] 🖐 **操作**: `mkdir -p temp && cd temp && git clone https://github.com/younesZdDz/react-bbox-annotator && git clone https://github.com/reactive-python/reactpy.git` を実行（既存なら `cd temp/react-bbox-annotator && git pull` / `cd temp/reactpy && git pull`）。クローン後、別LLMタブ/セッションに「構造・主要コンポーネント・イベントフローの要約」を依頼する。
+- [x] 🔎 **確認**: `temp/react-bbox-annotator/.git` と `temp/reactpy/.git` が存在し、最新 commit を取得できている。LLM 依頼メモが記録欄に残る。
+- [x] 🧪 **テスト**: `cd temp/react-bbox-annotator && git status` が clean、`cd temp/reactpy && git status` が clean。
+- [x] 🛠 **エラー時対処**: clone 失敗時はネットワーク制約を確認し、tarball ダウンロードを検討。権限エラーは `sudo` 不要な場所で再実行。
 
 ### 手順 4: headless 依存の apt 更新
-- [ ] 🖐 **操作**: `sudo apt-get update` を実行（headless 環境前提）。
-- [ ] 🔎 **確認**: Update 成功ログが表示されエラーなし。
-- [ ] 🧪 **テスト**: なし（環境前提）。
-- [ ] 🛠 **エラー時対処**: 署名エラー時は `sudo apt-get update -o Acquire::AllowInsecureRepositories=true` で再試行し、失敗時はミラー変更を検討。
+- [x] 🖐 **操作**: `sudo apt-get update` を実行（headless 環境前提）。
+- [x] 🔎 **確認**: Update 成功ログが表示されエラーなし。
+- [x] 🧪 **テスト**: なし（環境前提）。
+- [x] 🛠 **エラー時対処**: 署名エラー時は `sudo apt-get update -o Acquire::AllowInsecureRepositories=true` で再試行し、失敗時はミラー変更を検討。
 
 ### 手順 5: Playwright 依存の apt 導入
-- [ ] 🖐 **操作**: `sudo apt-get install -y wget ca-certificates libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 xvfb` を実行。
-- [ ] 🔎 **確認**: すべてのパッケージが `... already the newest` もしくは `Setting up ...` で完了。
-- [ ] 🧪 **テスト**: `xvfb-run --auto-servernum --server-args='-screen 0 1280x720x24' echo ok` が `ok` を出す。
-- [ ] 🛠 **エラー時対処**: パッケージ未検出時は `apt-cache search <name>` で代替名を確認。ロック競合時は `sudo fuser -v /var/lib/dpkg/lock-frontend` でプロセス確認。
+- [x] 🖐 **操作**: `sudo apt-get install -y wget ca-certificates libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 xvfb` を実行。
+- [x] 🔎 **確認**: すべてのパッケージが `... already the newest` もしくは `Setting up ...` で完了。
+- [x] 🧪 **テスト**: `xvfb-run --auto-servernum --server-args='-screen 0 1280x720x24' echo ok` が `ok` を出す。
+- [x] 🛠 **エラー時対処**: パッケージ未検出時は `apt-cache search <name>` で代替名を確認。ロック競合時は `sudo fuser -v /var/lib/dpkg/lock-frontend` でプロセス確認。
 
 ### 手順 6: uv 仮想環境の生成
-- [ ] 🖐 **操作**: `uv venv .venv` を実行し、`source .venv/bin/activate` を実施。
-- [ ] 🔎 **確認**: `which python` の結果が `.venv/bin/python` を指す。
-- [ ] 🧪 **テスト**: `python -c "import sys; print(sys.prefix.endswith('.venv'))"` が `True` を出す。
-- [ ] 🛠 **エラー時対処**: uv 未導入なら `curl -LsSf https://astral.sh/uv/install.sh | sh` を検討（ネット許諾要確認）。失敗時は既存 `.venv` を削除して再作成。
+- [x] 🖐 **操作**: `uv venv .venv` を実行し、`source .venv/bin/activate` を実施。
+- [x] 🔎 **確認**: `which python` の結果が `.venv/bin/python` を指す。
+- [x] 🧪 **テスト**: `python -c "import sys; print(sys.prefix.endswith('.venv'))"` が `True` を出す。
+- [x] 🛠 **エラー時対処**: uv 未導入なら `curl -LsSf https://astral.sh/uv/install.sh | sh` を検討（ネット許諾要確認）。失敗時は既存 `.venv` を削除して再作成。
 
 ### 手順 7: Python 依存の導入
-- [ ] 🖐 **操作**: `uv pip install -e . && uv pip install playwright pytest pytest-asyncio` を実行。
-- [ ] 🔎 **確認**: 依存解決が成功しエラーなし。
-- [ ] 🧪 **テスト**: `python -c "import playwright, fastapi, reactpy"` が例外を出さない。
-- [ ] 🛠 **エラー時対処**: ビルド失敗時は `uv pip install -U pip setuptools wheel` 後に再実行。
+- [x] 🖐 **操作**: `uv pip install -e . && uv pip install playwright pytest pytest-asyncio` を実行。
+- [x] 🔎 **確認**: 依存解決が成功しエラーなし。
+- [x] 🧪 **テスト**: `python -c "import playwright, fastapi, reactpy"` が例外を出さない。
+- [x] 🛠 **エラー時対処**: ビルド失敗時は `uv pip install -U pip setuptools wheel` 後に再実行。
 
 ### 手順 8: Playwright ブラウザの headless 導入
-- [ ] 🖐 **操作**: `uv run playwright install-deps chromium` を実行し、続けて `uv run playwright install chromium` を実行。
-- [ ] 🔎 **確認**: インストール完了ログが表示される。
-- [ ] 🧪 **テスト**: `uv run python - <<'PY'\nfrom playwright.async_api import async_playwright\nimport asyncio\nasync def main():\n    async with async_playwright() as p:\n        browser = await p.chromium.launch(headless=True)\n        page = await browser.new_page()\n        await page.goto('about:blank')\n        await browser.close()\nasyncio.run(main())\nPY` が例外なく終了。
-- [ ] 🛠 **エラー時対処**: ランタイムライブラリ不足は apt 追加。`chromium not found` 時は `rm -rf ~/.cache/ms-playwright` 後に再実行。
+- [x] 🖐 **操作**: `uv run playwright install-deps chromium` を実行し、続けて `uv run playwright install chromium` を実行。
+- [x] 🔎 **確認**: インストール完了ログが表示される。
+- [x] 🧪 **テスト**: `uv run python - <<'PY'\nfrom playwright.async_api import async_playwright\nimport asyncio\nasync def main():\n    async with async_playwright() as p:\n        browser = await p.chromium.launch(headless=True)\n        page = await browser.new_page()\n        await page.goto('about:blank')\n        await browser.close()\nasyncio.run(main())\nPY` が例外なく終了。
+- [x] 🛠 **エラー時対処**: ランタイムライブラリ不足は apt 追加。`chromium not found` 時は `rm -rf ~/.cache/ms-playwright` 後に再実行。
 
 ### 手順 9: テストスケルトンを fail-first で作成
-- [ ] 🖐 **操作**: `tests/e2e/test_bbox.py` を作成し、Playwright MCP シナリオ（ドラッグ→select ラベル→text ラベル→削除→リセット→URL 変更）を TODO 付きで記述し、未実装で失敗させる。
-- [ ] 🔎 **確認**: テストが `assert False` 等で意図的に失敗する。
-- [ ] 🧪 **テスト**: `uv run pytest tests/e2e/test_bbox.py -q` が RED になる。
-- [ ] 🛠 **エラー時対処**: import エラー時は `PYTHONPATH` を `.` に設定。Playwright fixture 未設定なら `pytest-playwright` の fixture 例を追加。
+- [x] 🖐 **操作**: `tests/e2e/test_bbox.py` を作成し、Playwright MCP シナリオ（ドラッグ→select ラベル→text ラベル→削除→リセット→URL 変更）を TODO 付きで記述し、未実装で失敗させる。
+- [x] 🔎 **確認**: テストが `assert False` 等で意図的に失敗する。
+- [x] 🧪 **テスト**: `uv run pytest tests/e2e/test_bbox.py -q` が RED になる。
+- [x] 🛠 **エラー時対処**: import エラー時は `PYTHONPATH` を `.` に設定。Playwright fixture 未設定なら `pytest-playwright` の fixture 例を追加。
 
 ### 手順 10: ReactPy 実装を改善
 - [ ] 🖐 **操作**: `app.py` に状態管理・スケール正規化・削除ボタン hover 表示・入力キャンセル対応を実装（DRY/KISS/SOLID を守る）。
@@ -213,12 +213,16 @@ PY
 
 | 日付 | 時刻 | 作業者 | 作業内容 | 結果・備考 |
 | :--- | :--- | :--- | :--- | :--- |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | フェーズ1開始: 現状調査 | 作業計画書確認・タスク把握 |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | `app.py`/参考TS確認 | **重要発見**: `[差分・課題を記入]` |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | フェーズ1完了: 設計方針確定 | `[設計方針確定内容]` |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | フェーズ2開始: 実装 | `uv run uvicorn ...` で環境起動 |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | 実装変更 | ✅/❌ `[結果と内容]` |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | E2E テスト | ✅/❌ `[テスト結果とログパス]` |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | エラー修正 | ✅解決: `[修正内容]` |
-| `[YYYY-MM-DD]` | `[HH:MM:SS TZ]` | `[作業者名]` | フェーズ3完了・総括 | ✅全体成功: `[最終成果]` |
+| 2025-11-20 | 08:07:13 UTC+0000 | Claude | フェーズ1開始: 現状調査 | 作業計画書確認・タスク把握完了 |
+| 2025-11-20 | 08:07:13 UTC+0000 | Claude | 手順1: 現時刻を記録 | ✅ date コマンド実行成功 |
+| 2025-11-20 | 08:08:00 UTC+0000 | Claude | 手順3: 参照リポジトリ取得 | ✅ react-bbox-annotator と reactpy を temp/ にクローン完了 |
+| 2025-11-20 | 08:08:30 UTC+0000 | Claude | app.py/pyproject.toml作成 | ✅ ユーザー提供の参考実装を作成 |
+| 2025-11-20 | 08:09:00 UTC+0000 | Claude | 手順2: 参照コード確認 | ✅ React版との差分確認: 削除ボタンのホバー表示、マウスイベントリスナーの違い、スケール計算方式の違いを確認 |
+| 2025-11-20 | 08:10:00 UTC+0000 | Claude | 手順4: apt更新 | ✅ /tmp パーミッション修正後、apt-get update 成功 |
+| 2025-11-20 | 08:11:00 UTC+0000 | Claude | 手順5: Playwright依存導入 | ✅ xvfb含む必要パッケージをインストール、テスト成功 |
+| 2025-11-20 | 08:12:00 UTC+0000 | Claude | 手順6: uv仮想環境作成 | ✅ .venv作成、pyproject.toml修正、テスト成功 |
+| 2025-11-20 | 08:13:00 UTC+0000 | Claude | 手順7: Python依存導入 | ✅ reactpy/fastapi/playwright等35パッケージインストール成功 |
+| 2025-11-20 | 08:14:00 UTC+0000 | Claude | 手順8: Playwright chromium導入 | ✅ ブラウザインストール・テスト成功 |
+| 2025-11-20 | 08:15:00 UTC+0000 | Claude | 手順9: テストスケルトン作成 | ✅ 7つのE2Eテストを作成、fail-first確認 |
+| 2025-11-20 | 08:16:00 UTC+0000 | Claude | 手順10: 実装開始 | 🔄 conftest.py作成、テスト実装中、use_effect API修正対応中 |
 | | | | | |

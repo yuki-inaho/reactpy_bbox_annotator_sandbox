@@ -1,0 +1,15 @@
+[project]
+name = "reactpy-bbox-annotator"
+version = "0.1.0"
+description = "Bounding box annotator demo built with ReactPy + FastAPI"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "reactpy>=1.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.23.0",
+    "pillow>=10.0.0",
+]
+
+[tool.uv]
+managed = true
