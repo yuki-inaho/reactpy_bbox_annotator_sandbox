@@ -5,7 +5,7 @@ Web-based bounding box annotation tool built with ReactPy and FastAPI.
 ## Setup
 
 ```bash
-# Install system dependencies
+# Install system dependencies (for headless end-to-end tests)
 sudo apt-get update
 sudo apt-get install -y wget ca-certificates libnss3 libatk1.0-0 libatk-bridge2.0-0 \
   libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
